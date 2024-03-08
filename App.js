@@ -36,7 +36,7 @@ export default function App() {
         iteration: iteration,
         startTime: start,
         endTime: end || new Date(), // Si 'end' es null, utiliza la hora actual
-        elapsedTime: timeElapsed.toFixed(3),
+        elapsedTime: timeElapsed,
       };
       newRecord.interarrivalTime = calculateInterarrivalTime(previousEnd, newRecord.startTime);
       console.log("Nuevo registro:", newRecord);

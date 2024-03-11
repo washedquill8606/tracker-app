@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Platform, Share } from 'react-native';
 import * as FileSystem from 'expo-file-system';
+import * as Permissions from 'expo-permissions';
 
 export default function App() {
   const [records, setRecords] = useState([]);
@@ -22,6 +23,16 @@ export default function App() {
     }
     return () => clearInterval(interval);
   }, [running]);
+
+  useEffect(() => {
+    const getPermission = async () => {
+      const { status } = await Permissions.askAsync(Permissions.WRITE_EXTERNAL_STORAGE);
+      if (status !== 'granted') {
+        console.error('Permission to write to external storage denied');
+      }
+    };
+    getPermission();
+  }, []); // Solo se ejecutará una vez al montar el componente
 
   const handleStartStop = () => {
     if (!running) {
@@ -52,7 +63,7 @@ export default function App() {
       return (startTime - previousEnd) / 1000; // Devolvemos la diferencia en segundos
     }
     return 0;
-};
+  };
 
   const exportToCSV = async () => {
     try {
@@ -61,9 +72,11 @@ export default function App() {
       await FileSystem.writeAsStringAsync(path, 'iteracion,F/H inicio,F/H fin,tiempo transcurrido, tiempo interarribo\n' + csvContent);
       
       if (Platform.OS === 'ios' || Platform.OS === 'android') {
+        const fileUri = path; // Asegúrate de que la URL tenga el prefijo 'file://'
         await Share.share({
           message: 'Exportación de registros CSV',
-          url: 'file://' + path,
+          url: fileUri,
+          mimeType: 'text/csv',
         });
       } else {
         alert('La exportación de registros CSV está disponible solo en dispositivos iOS y Android.');
